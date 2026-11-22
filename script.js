@@ -1,49 +1,138 @@
-// Demonstração estática para GitHub Pages: os dados ficam neste navegador.
-const ADMIN_PASSWORD = "Brunodabundaproth";
-const KEY = "leviathan_public_demo_v1";
-const $ = id => document.getElementById(id);
-function load(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch{return []}}
-function save(items){localStorage.setItem(KEY,JSON.stringify(items))}
 
-$("form").addEventListener("submit",e=>{
+const SUPABASE_URL = "https://mlfhuavkrjuekmjznxgy.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_WexlLc3SUJK2IgoBxYfRHA_jLB3AUsM";
+
+const ADMIN_PASSWORD = "Brunodabundaproth";
+
+const db = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const $ = id => document.getElementById(id);
+
+// ENVIAR INSCRIÇÃO
+$("form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const d=new FormData(e.currentTarget);
-  const entry={
-    id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random())),
-    nick:String(d.get("nick")||"").trim(),
-    gender:String(d.get("gender")||""),
-    schedule:String(d.get("schedule")||"").trim(),
-    politics:String(d.get("politics")||""),
-    notes:String(d.get("notes")||"").trim(),
-    date:new Date().toLocaleString("pt-BR")
+
+  const button = $("send");
+  const message = $("message");
+  const data = new FormData(e.target);
+
+  const inscricao = {
+    nickname: data.get("nick").trim(),
+    genero: data.get("gender"),
+    horario: data.get("schedule").trim(),
+    politica: data.get("politics"),
+    observacao: data.get("notes").trim()
   };
-  if(!entry.nick||!entry.gender||!entry.schedule||!entry.politics)return;
-  const all=load();all.unshift(entry);save(all);e.currentTarget.reset();
-  $("message").textContent="Inscrição salva neste navegador! 🐋";
+
+  button.disabled = true;
+  message.textContent = "Enviando inscrição...";
+
+  try {
+    const { error } = await db
+      .from("inscricoes")
+      .insert([inscricao]);
+
+    if (error) throw error;
+
+    e.target.reset();
+    message.textContent = "Inscrição enviada com sucesso! 🐋";
+
+  } catch (error) {
+    console.error(error);
+    message.textContent = "Erro ao enviar inscrição.";
+  }
+
+  button.disabled = false;
 });
-function showLogin(){
-  $("modal").classList.remove("hidden");$("login").classList.remove("hidden");
-  $("dashboard").classList.add("hidden");$("password").value="";$("loginMessage").textContent="";
-}
-$("openAdmin").addEventListener("click",showLogin);
-$("close").addEventListener("click",()=>$("modal").classList.add("hidden"));
-$("modal").addEventListener("click",e=>{if(e.target===$("modal"))$("modal").classList.add("hidden")});
-$("loginForm").addEventListener("submit",e=>{
+
+// ABRIR PAINEL
+$("openPanel").onclick = () => {
+  $("modal").classList.remove("hidden");
+  $("login").classList.remove("hidden");
+  $("dashboard").classList.add("hidden");
+};
+
+$("close").onclick = () => {
+  $("modal").classList.add("hidden");
+};
+
+// LOGIN
+$("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  if($("password").value===ADMIN_PASSWORD){
-    $("login").classList.add("hidden");$("dashboard").classList.remove("hidden");render();
-  }else $("loginMessage").textContent="Senha incorreta.";
+
+  if ($("password").value !== ADMIN_PASSWORD) {
+    $("loginMessage").textContent = "Senha incorreta!";
+    return;
+  }
+
+  $("login").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+
+  await carregarInscricoes();
 });
-$("logout").addEventListener("click",showLogin);
-function render(){
-  const all=load();$("count").textContent=all.length+" inscrição(ões)";
-  const list=$("entries");list.replaceChildren();
-  if(!all.length){const p=document.createElement("p");p.className="empty";p.textContent="Nenhuma inscrição salva neste navegador.";list.append(p);return}
-  all.forEach(item=>{
-    const box=document.createElement("article");box.className="entry";
-    const title=document.createElement("b");title.textContent=item.nick;box.append(title);
-    [`Gênero: ${item.gender}`,`Horário: ${item.schedule}`,`Preferência: ${item.politics}`,`Observações: ${item.notes||"Nenhuma"}`,`Data: ${item.date}`].forEach(t=>{const p=document.createElement("p");p.textContent=t;box.append(p)});
-    const del=document.createElement("button");del.textContent="Excluir";del.addEventListener("click",()=>{save(load().filter(x=>x.id!==item.id));render()});box.append(del);list.append(box);
+
+// CARREGAR INSCRIÇÕES
+async function carregarInscricoes() {
+  const entries = $("entries");
+
+  entries.replaceChildren();
+  $("count").textContent = "Carregando...";
+
+  const { data, error } = await db
+    .from("inscricoes")
+    .select("*")
+    .order("criado_em", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    $("count").textContent = "Erro ao carregar inscrições.";
+    return;
+  }
+
+  $("count").textContent =
+    data.length + " participante(s)";
+
+  if (data.length === 0) {
+    entries.textContent = "Nenhuma inscrição recebida.";
+    return;
+  }
+
+  data.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "entry";
+
+    const title = document.createElement("strong");
+    title.textContent = item.nickname;
+    card.appendChild(title);
+
+    const campos = [
+      "Gênero: " + item.genero,
+      "Horário: " + item.horario,
+      "Política: " + item.politica,
+      "Observações: " + (item.observacao || "Nenhuma"),
+      "Data: " + new Date(item.criado_em).toLocaleString("pt-BR")
+    ];
+
+    campos.forEach(texto => {
+      const p = document.createElement("p");
+      p.textContent = texto;
+      card.appendChild(p);
+    });
+
+    entries.appendChild(card);
   });
 }
-$("clear").addEventListener("click",()=>{if(confirm("Apagar todas as inscrições deste navegador?")){save([]);render()}});
+
+// ATUALIZAR E SAIR
+$("refresh").onclick = carregarInscricoes;
+
+$("logout").onclick = () => {
+  $("dashboard").classList.add("hidden");
+  $("login").classList.remove("hidden");
+  $("password").value = "";
+};
+               
