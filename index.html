@@ -4,100 +4,90 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050b14">
   <title>Expedição Leviathan</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">
-    🐋
-    <div>
-      <strong>EXPEDIÇÃO LEVIATHAN</strong>
-      <small>BLOX FRUITS • RECRUTAMENTO</small>
-    </div>
-  </div>
-  <button id="openPanel" class="secondary">Painel</button>
-</header>
+  <header>
+    <h1>EXPEDIÇÃO LEVIATHAN</h1>
+    <p>Formulário oficial da tripulação</p>
+    <button type="button" id="openPanel">Painel administrativo</button>
+  </header>
 
-<main>
-  <section class="hero">
-    <span>RECRUTAMENTO ABERTO</span>
-    <h1>PARTIU CAÇAR<br><b>O LEVIATÃ?</b></h1>
-    <p>Preencha sua ficha para participar da próxima expedição.</p>
-  </section>
-
-  <section class="card">
-    <h2>Ficha de inscrição</h2>
-
+  <main>
     <form id="form">
-      <label>Nick do Roblox</label>
-      <input name="nick" maxlength="30" required placeholder="Seu nickname">
 
-      <label>Qual é seu gênero?</label>
-      <div class="options">
-        <label><input type="radio" name="gender" value="Masculino" required> Masculino</label>
-        <label><input type="radio" name="gender" value="Feminino"> Feminino</label>
-        <label><input type="radio" name="gender" value="Gay"> Gay</label>
-        <label><input type="radio" name="gender" value="Trans"> Trans</label>
-        <label><input type="radio" name="gender" value="Espaçonave"> Espaçonave 🛸</label>
-        <label><input type="radio" name="gender" value="Gay ao contrário"> Gay ao contrário</label>
-        <label><input type="radio" name="gender" value="Outro"> Outro</label>
-        <label><input type="radio" name="gender" value="Prefiro não responder"> Prefiro não responder</label>
-      </div>
+      <label>Nickname do Roblox</label>
+      <input type="text" name="nick" placeholder="Seu nickname" required>
 
-      <label>Qual horário você estará disponível?</label>
-      <input name="schedule" required placeholder="Ex.: sábado, das 19h às 22h">
+      <label>Gênero</label>
+      <select name="gender" required>
+        <option value="">Selecione</option>
+        <option value="Masculino">Masculino</option>
+        <option value="Feminino">Feminino</option>
+        <option value="Gay">Gay</option>
+        <option value="Trans">Trans</option>
+        <option value="Espaçonave">Espaçonave</option>
+        <option value="Gay ao contrário">Gay ao contrário</option>
+        <option value="Outro">Outro</option>
+        <option value="Prefiro não responder">Prefiro não responder</option>
+      </select>
 
-      <label>Você é Lula ou Bolsonaro?</label>
-      <div class="options">
-        <label><input type="radio" name="politics" value="Lula" required> Lula</label>
-        <label><input type="radio" name="politics" value="Bolsonaro"> Bolsonaro</label>
-        <label><input type="radio" name="politics" value="Nenhum dos dois"> Nenhum dos dois</label>
-        <label><input type="radio" name="politics" value="Prefiro não responder"> Prefiro não responder</label>
-      </div>
+      <label>Horário disponível</label>
+      <input type="text" name="schedule" placeholder="Ex: 19h até 22h" required>
+
+      <label>Lula ou Bolsonaro?</label>
+      <select name="politics" required>
+        <option value="">Selecione</option>
+        <option value="Lula">Lula</option>
+        <option value="Bolsonaro">Bolsonaro</option>
+        <option value="Nenhum">Nenhum</option>
+        <option value="Prefiro não responder">Prefiro não responder</option>
+      </select>
 
       <label>Observações (opcional)</label>
-      <textarea name="notes" rows="3" placeholder="Informações extras..."></textarea>
+      <textarea name="notes" placeholder="Alguma informação extra?"></textarea>
 
-      <button class="primary" id="send" type="submit">
-        ENVIAR INSCRIÇÃO →
-      </button>
+      <button type="submit" id="send">Enviar inscrição</button>
 
       <p id="message"></p>
+
     </form>
-  </section>
-</main>
+  </main>
 
-<div class="modal hidden" id="modal">
-  <section class="panel">
-    <button id="close" class="close">×</button>
-
-    <div id="login">
-      <span>ÁREA RESTRITA</span>
+  <!-- LOGIN -->
+  <div id="modal" style="display:none;">
+    <div class="modal-content">
       <h2>Painel administrativo</h2>
+
       <form id="loginForm">
-        <label>Senha</label>
-        <input id="password" type="password" required placeholder="Senha do painel">
-        <button class="primary">ENTRAR</button>
-        <p id="loginMessage"></p>
+        <input type="password" id="password" placeholder="Senha" required>
+        <button type="submit">Entrar</button>
       </form>
-    </div>
 
-    <div id="dashboard" class="hidden">
-      <h2>Inscrições recebidas</h2>
-      <h3 id="count">Carregando...</h3>
-      <button id="refresh" class="secondary">ATUALIZAR LISTA</button>
-      <button id="logout" class="secondary">SAIR</button>
-      <div id="entries"></div>
+      <p id="loginMessage"></p>
+      <button type="button" id="close">Fechar</button>
     </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" style="display:none;">
+    <h2>Inscrições recebidas</h2>
+    <h3>Total: <span id="count">0</span></h3>
+
+    <div id="entries"></div>
+
+    <button type="button" id="refresh">Atualizar</button>
+    <button type="button" id="logout">Sair</button>
   </section>
-</div>
 
-<footer>EXPEDIÇÃO LEVIATHAN • BLOX FRUITS</footer>
+  <!-- SUPABASE PRIMEIRO -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script src="script.js"></script>
+  <!-- NOSSO JAVASCRIPT DEPOIS -->
+  <script src="script.js"></script>
+
 </body>
 </html>
