@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <title>Expedição Leviathan</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span>🐋</span><div><b>EXPEDIÇÃO LEVIATHAN</b><small>BLOX FRUITS • CENTRAL DE INSCRIÇÕES</small></div></div>
+  <button class="outline" id="openAdmin">Painel</button>
+</header>
+<main>
+  <section class="hero">
+    <small>RECRUTAMENTO ABERTO</small>
+    <h1>PARTIU CAÇAR<br><em>O LEVIATÃ?</em></h1>
+    <p>Preencha sua ficha para entrar na lista da próxima expedição.</p>
+  </section>
+  <section class="card">
+    <h2>Ficha de inscrição</h2>
+    <form id="form">
+      <label for="nick">Nick do Roblox</label>
+      <input id="nick" name="nick" maxlength="30" placeholder="Seu nickname" required>
+      <label>Qual é seu gênero?</label>
+      <div class="options">
+        <label><input type="radio" name="gender" value="Masculino" required> Masculino</label>
+        <label><input type="radio" name="gender" value="Feminino"> Feminino</label>
+        <label><input type="radio" name="gender" value="Gay"> Gay</label>
+        <label><input type="radio" name="gender" value="Trans"> Trans</label>
+        <label><input type="radio" name="gender" value="Espaçonave"> Espaçonave 🛸</label>
+        <label><input type="radio" name="gender" value="Gay ao contrário"> Gay ao contrário</label>
+        <label><input type="radio" name="gender" value="Outro"> Outro</label>
+        <label><input type="radio" name="gender" value="Prefiro não responder"> Prefiro não responder</label>
+      </div>
+      <label for="schedule">Em qual horário você estará disponível?</label>
+      <input id="schedule" name="schedule" placeholder="Ex.: sábado, das 19h às 22h" required>
+      <label>Você é Lula ou Bolsonaro?</label>
+      <div class="options">
+        <label><input type="radio" name="politics" value="Lula" required> Lula</label>
+        <label><input type="radio" name="politics" value="Bolsonaro"> Bolsonaro</label>
+        <label><input type="radio" name="politics" value="Nenhum dos dois"> Nenhum dos dois</label>
+        <label><input type="radio" name="politics" value="Prefiro não responder"> Prefiro não responder</label>
+      </div>
+      <label for="notes">Observações <span>(opcional)</span></label>
+      <textarea id="notes" name="notes" rows="3" placeholder="Alguma informação extra..."></textarea>
+      <button class="primary" type="submit">Enviar inscrição →</button>
+      <p id="message" aria-live="polite"></p>
+    </form>
+  </section>
+  <p class="foot">As inscrições desta versão de demonstração ficam salvas somente neste navegador.</p>
+</main>
+
+<div class="modal hidden" id="modal">
+  <section class="modalbox">
+    <button class="x" id="close" aria-label="Fechar">×</button>
+    <div id="login">
+      <small>ÁREA DA EQUIPE</small><h2>Painel administrativo</h2>
+      <form id="loginForm">
+        <label for="password">Senha do painel</label>
+        <input id="password" type="password" required>
+        <button class="primary">Entrar</button>
+        <p id="loginMessage"></p>
+      </form>
+    </div>
+    <div id="dashboard" class="hidden">
+      <div class="dashhead"><div><small>LISTA DE INSCRITOS</small><h2>Participantes</h2></div><button class="outline" id="logout">Sair</button></div>
+      <h3 id="count">0 inscrições</h3>
+      <div id="entries"></div>
+      <button class="deleteall" id="clear">Apagar inscrições deste navegador</button>
+      <p class="warning">Atenção: esta versão salva dados localmente. Ela não reúne inscrições de outros visitantes.</p>
+    </div>
+  </section>
+</div>
+<footer>FEITO PARA A TRIPULAÇÃO • LEVIATHAN HUNT</footer>
+<script src="script.js"></script>
+</body>
+</html>
