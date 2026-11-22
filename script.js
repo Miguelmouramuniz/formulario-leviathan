@@ -5,6 +5,7 @@ const SUPABASE_KEY = "sb_publishable_WexlLc3SUJK2IgoBxYfRHA_jLB3AUsM";
 
 const ADMIN_PASSWORD = "Brunodabundaproth";
 
+// Conexão com Supabase
 const db = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
@@ -12,127 +13,178 @@ const db = supabase.createClient(
 
 const $ = id => document.getElementById(id);
 
+// Elementos
+const form = $("form");
+const message = $("message");
+const send = $("send");
+
+const modal = $("modal");
+const dashboard = $("dashboard");
+
+const openPanel = $("openPanel");
+const close = $("close");
+
+const loginForm = $("loginForm");
+const password = $("password");
+const loginMessage = $("loginMessage");
+
+const count = $("count");
+const entries = $("entries");
+
+const refresh = $("refresh");
+const logout = $("logout");
+
 // ENVIAR INSCRIÇÃO
-$("form").addEventListener("submit", async (e) => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const button = $("send");
-  const message = $("message");
-  const data = new FormData(e.target);
+  send.disabled = true;
+  send.textContent = "Enviando...";
 
-  const inscricao = {
-    nickname: data.get("nick").trim(),
-    genero: data.get("gender"),
-    horario: data.get("schedule").trim(),
-    politica: data.get("politics"),
-    observacao: data.get("notes").trim()
-  };
-
-  button.disabled = true;
-  message.textContent = "Enviando inscrição...";
+  message.textContent = "";
 
   try {
+    const dados = new FormData(form);
+
+    const inscricao = {
+      nickname: dados.get("nick")?.trim(),
+      genero: dados.get("gender"),
+      horario: dados.get("schedule")?.trim(),
+      politica: dados.get("politics"),
+      observacao: dados.get("notes")?.trim() || null
+    };
+
+    if (
+      !inscricao.nickname ||
+      !inscricao.genero ||
+      !inscricao.horario ||
+      !inscricao.politica
+    ) {
+      throw new Error("Preencha todos os campos obrigatórios.");
+    }
+
     const { error } = await db
       .from("inscricoes")
       .insert([inscricao]);
 
     if (error) throw error;
 
-    e.target.reset();
-    message.textContent = "Inscrição enviada com sucesso! 🐋";
+    message.textContent = "Inscrição enviada com sucesso!";
+    message.style.color = "#00ff88";
 
-  } catch (error) {
-    console.error(error);
-    message.textContent = "Erro ao enviar inscrição.";
+    form.reset();
+
+  } catch (erro) {
+    console.error("Erro ao enviar inscrição:", erro);
+
+    message.textContent =
+      "ERRO: " + (erro.message || JSON.stringify(erro));
+
+    message.style.color = "#ff4444";
+
+  } finally {
+    send.disabled = false;
+    send.textContent = "Enviar inscrição";
   }
-
-  button.disabled = false;
 });
 
 // ABRIR PAINEL
-$("openPanel").onclick = () => {
-  $("modal").classList.remove("hidden");
-  $("login").classList.remove("hidden");
-  $("dashboard").classList.add("hidden");
-};
+openPanel.addEventListener("click", () => {
+  modal.style.display = "flex";
+});
 
-$("close").onclick = () => {
-  $("modal").classList.add("hidden");
-};
+// FECHAR PAINEL
+close.addEventListener("click", () => {
+  modal.style.display = "none";
+});
 
 // LOGIN
-$("loginForm").addEventListener("submit", async (e) => {
+loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  if ($("password").value !== ADMIN_PASSWORD) {
-    $("loginMessage").textContent = "Senha incorreta!";
-    return;
+  if (password.value === ADMIN_PASSWORD) {
+    loginMessage.textContent = "Acesso permitido!";
+    loginMessage.style.color = "#00ff88";
+
+    await carregarInscricoes();
+
+    modal.style.display = "none";
+    dashboard.style.display = "block";
+
+    password.value = "";
+  } else {
+    loginMessage.textContent = "Senha incorreta!";
+    loginMessage.style.color = "red";
   }
-
-  $("login").classList.add("hidden");
-  $("dashboard").classList.remove("hidden");
-
-  await carregarInscricoes();
 });
 
 // CARREGAR INSCRIÇÕES
 async function carregarInscricoes() {
-  const entries = $("entries");
+  entries.innerHTML = "Carregando inscrições...";
 
-  entries.replaceChildren();
-  $("count").textContent = "Carregando...";
+  try {
+    const { data, error } = await db
+      .from("inscricoes")
+      .select("*")
+      .order("criado_em", { ascending: false });
 
-  const { data, error } = await db
-    .from("inscricoes")
-    .select("*")
-    .order("criado_em", { ascending: false });
+    if (error) throw error;
 
-  if (error) {
-    console.error(error);
-    $("count").textContent = "Erro ao carregar inscrições.";
-    return;
-  }
+    count.textContent = data.length;
 
-  $("count").textContent =
-    data.length + " participante(s)";
+    entries.innerHTML = "";
 
-  if (data.length === 0) {
-    entries.textContent = "Nenhuma inscrição recebida.";
-    return;
-  }
+    if (data.length === 0) {
+      entries.textContent = "Nenhuma inscrição encontrada.";
+      return;
+    }
 
-  data.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "entry";
+    data.forEach((pessoa) => {
+      const card = document.createElement("div");
 
-    const title = document.createElement("strong");
-    title.textContent = item.nickname;
-    card.appendChild(title);
+      card.className = "entry";
 
-    const campos = [
-      "Gênero: " + item.genero,
-      "Horário: " + item.horario,
-      "Política: " + item.politica,
-      "Observações: " + (item.observacao || "Nenhuma"),
-      "Data: " + new Date(item.criado_em).toLocaleString("pt-BR")
-    ];
+      const titulo = document.createElement("h3");
+      titulo.textContent = pessoa.nickname;
 
-    campos.forEach(texto => {
-      const p = document.createElement("p");
-      p.textContent = texto;
-      card.appendChild(p);
+      const genero = document.createElement("p");
+      genero.textContent = "Gênero: " + pessoa.genero;
+
+      const horario = document.createElement("p");
+      horario.textContent = "Horário: " + pessoa.horario;
+
+      const politica = document.createElement("p");
+      politica.textContent = "Opinião: " + pessoa.politica;
+
+      const observacao = document.createElement("p");
+      observacao.textContent =
+        "Observação: " + (pessoa.observacao || "Nenhuma");
+
+      card.append(titulo, genero, horario, politica, observacao);
+      entries.appendChild(card);
     });
 
-    entries.appendChild(card);
-  });
+  } catch (erro) {
+    console.error("Erro ao carregar inscrições:", erro);
+
+    entries.textContent =
+      "Erro ao carregar: " + erro.message;
+  }
 }
 
-// ATUALIZAR E SAIR
-$("refresh").onclick = carregarInscricoes;
+// ATUALIZAR PAINEL
+refresh.addEventListener("click", carregarInscricoes);
 
-$("logout").onclick = () => {
-  $("dashboard").classList.add("hidden");
-  $("login").classList.remove("hidden");
-  $("password").value = "";
-};
-               
+// SAIR DO PAINEL
+logout.addEventListener("click", () => {
+  dashboard.style.display = "none";
+  modal.style.display = "none";
+});
+
+// FECHAR CLICANDO FORA
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.style.display = "none";
+  }
+});
+      
